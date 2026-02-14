@@ -31,7 +31,11 @@ sqlc:
 
 build_proto:
 	@echo "Generating Go stubs..."
-	protoc -I ../proto --go_out=./internal/providers/proto --go_opt=paths=source_relative --go-grpc_out=./internal/providers/proto --go-grpc_opt=paths=source_relative loan_calculator/v1/calculation.proto
+	@protoc -I ../proto \
+		--go_out=./internal/providers/proto \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=./internal/providers/proto \
+		--go-grpc_opt=paths=source_relative loan_calculator/v1/calculation.proto
 
 docker_compose_run:
 	@if docker compose up --build 2>/dev/null; then \

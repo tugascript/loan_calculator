@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -137,7 +138,7 @@ var File_loan_calculator_v1_calculation_proto protoreflect.FileDescriptor
 
 const file_loan_calculator_v1_calculation_proto_rawDesc = "" +
 	"\n" +
-	"$loan_calculator/v1/calculation.proto\x12\x12loan_calculator.v1\"\x96\x01\n" +
+	"$loan_calculator/v1/calculation.proto\x12\x12loan_calculator.v1\x1a\x1cgoogle/api/annotations.proto\"\x96\x01\n" +
 	" CalculateMonthlyRepaymentRequest\x12\x1f\n" +
 	"\vloan_amount\x18\x01 \x01(\x01R\n" +
 	"loanAmount\x12#\n" +
@@ -145,9 +146,9 @@ const file_loan_calculator_v1_calculation_proto_rawDesc = "" +
 	"\x12number_of_payments\x18\x03 \x01(\x05R\x10numberOfPayments\"m\n" +
 	"!CalculateMonthlyRepaymentResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x128\n" +
-	"\x18monthly_repayment_amount\x18\x02 \x01(\x01R\x16monthlyRepaymentAmount2\xa1\x01\n" +
-	"\x12CalculationService\x12\x8a\x01\n" +
-	"\x19CalculateMonthlyRepayment\x124.loan_calculator.v1.CalculateMonthlyRepaymentRequest\x1a5.loan_calculator.v1.CalculateMonthlyRepaymentResponse\"\x00BSZQgithub.com/tugascript/loan_calculator/calculation_api/proto/loan_calculator/v1;v1b\x06proto3"
+	"\x18monthly_repayment_amount\x18\x02 \x01(\x01R\x16monthlyRepaymentAmount2\xcc\x01\n" +
+	"\x12CalculationService\x12\xb5\x01\n" +
+	"\x19CalculateMonthlyRepayment\x124.loan_calculator.v1.CalculateMonthlyRepaymentRequest\x1a5.loan_calculator.v1.CalculateMonthlyRepaymentResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /v1/monthly-repayments/calculateBSZQgithub.com/tugascript/loan_calculator/calculation_api/proto/loan_calculator/v1;v1b\x06proto3"
 
 var (
 	file_loan_calculator_v1_calculation_proto_rawDescOnce sync.Once

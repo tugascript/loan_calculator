@@ -15,20 +15,20 @@ type Config struct {
 	logger      LoggerConfig
 }
 
-func (C *Config) Port() int64 {
-	return C.port
+func (c *Config) Port() int64 {
+	return c.port
 }
 
-func (C *Config) ENV() string {
-	return C.env
+func (c *Config) ENV() string {
+	return c.env
 }
 
-func (C *Config) DatabaseURL() string {
-	return C.databaseURL
+func (c *Config) DatabaseURL() string {
+	return c.databaseURL
 }
 
-func (C *Config) Logger() LoggerConfig {
-	return C.logger
+func (c *Config) Logger() LoggerConfig {
+	return c.logger
 }
 
 var variables = [5]string{
