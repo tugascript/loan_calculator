@@ -9,6 +9,10 @@ clean:
 run:
 	@go run cmd/api/main.go
 
+run_in_docker:
+	@echo "Running in Docker..."
+	@docker build -t calculation_api . && docker run -e DATABASE_URL="postgresql://postgres:postgres@localhost:5432/loan" -e PORT=8080 -e ENV=development -e LOG_LEVEL=info -e SERVICE_NAME=calculation_api -p 8080:8080 calculation_api
+
 watch:
 	@if command -v air > /dev/null; then \
             air; \

@@ -24,6 +24,6 @@ ENV LOG_LEVEL=info
 ENV SERVICE_NAME=calculation_api
 # DATABASE_URL has no default; must be set at runtime (secret).
 
-EXPOSE 8080
+EXPOSE ${PORT}
 
 CMD ["/app/api"]

@@ -54,22 +54,21 @@ func (lc *LoanCalculationRequestsService) CreateLoanCalculationRequest(
 	)
 	logger.InfoContext(ctx, "Monthly repayment amount", "mraFloat64", mraFloat64)
 
-	var loanAmount pgtype.Numeric
-	if err := loanAmount.Scan(strconv.FormatFloat(opts.LoanAmount, 'f', -1, 64)); err != nil {
-		logger.ErrorContext(ctx, "Failed to scan loan amount", "error", err)
-		return nil, api_errors.NewInternalServerError("Failed to scan loan amount")
-	}
+	loanAmountStr := strconv.FormatFloat(opts.LoanAmount, 'f', 2, 64)
+	interestRateStr := strconv.FormatFloat(opts.InterestRate, 'f', 4, 64)
+	mraStr := strconv.FormatFloat(mraFloat64, 'f', 2, 64)
 
-	var interestRate pgtype.Numeric
-	if err := interestRate.Scan(strconv.FormatFloat(opts.InterestRate, 'f', -1, 64)); err != nil {
-		logger.ErrorContext(ctx, "Failed to scan interest rate", "error", err)
-		return nil, api_errors.NewInternalServerError("Failed to scan interest rate")
+	loanAmount, serviceErr := scanNumeric(ctx, logger, "loanAmount", loanAmountStr)
+	if serviceErr != nil {
+		return nil, serviceErr
 	}
-
-	var monthlyRepaymentAmount pgtype.Numeric
-	if err := monthlyRepaymentAmount.Scan(strconv.FormatFloat(mraFloat64, 'f', -1, 64)); err != nil {
-		logger.ErrorContext(ctx, "Failed to scan monthly repayment amount", "error", err)
-		return nil, api_errors.NewInternalServerError("Failed to scan monthly repayment amount")
+	interestRate, serviceErr := scanNumeric(ctx, logger, "interestRate", interestRateStr)
+	if serviceErr != nil {
+		return nil, serviceErr
+	}
+	monthlyRepaymentAmount, serviceErr := scanNumeric(ctx, logger, "mraFloat64", mraStr)
+	if serviceErr != nil {
+		return nil, serviceErr
 	}
 
 	loanCalculationRequest, err := lc.db.InsertLoanCalculationRequest(ctx, database.InsertLoanCalculationRequestParams{
@@ -86,6 +85,20 @@ func (lc *LoanCalculationRequestsService) CreateLoanCalculationRequest(
 	}
 
 	return dtos.MapLoanCalculationRequestToDTO(&loanCalculationRequest)
+}
+
+func scanNumeric(
+	ctx context.Context,
+	logger *slog.Logger,
+	label string,
+	value string,
+) (pgtype.Numeric, *api_errors.ServiceError) {
+	var n pgtype.Numeric
+	if err := n.Scan(value); err != nil {
+		logger.ErrorContext(ctx, "Failed to scan "+label, "error", err, "value", value)
+		return pgtype.Numeric{}, api_errors.NewInternalServerError("Failed to scan " + label)
+	}
+	return n, nil
 }
 
 // Copied CODE, not mine.
