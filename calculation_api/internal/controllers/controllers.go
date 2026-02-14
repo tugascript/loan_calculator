@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"math/big"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/tugascript/loan_calculator/calculation_api/internal/services"
 )
@@ -12,10 +13,10 @@ type Controllers struct {
 	*LoanCalculationRequestsController
 }
 
-func New(log *slog.Logger, services *services.Services) *Controllers {
+func New(log *slog.Logger, validate *validator.Validate, services *services.Services) *Controllers {
 	logger := log.With("layer", "controllers")
 	return &Controllers{
-		LoanCalculationRequestsController: newLoanCalculationRequestController(services, logger),
+		LoanCalculationRequestsController: newLoanCalculationRequestController(logger, validate, services),
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 
@@ -103,7 +104,8 @@ func New(
 	logger.InfoContext(ctx, "Services built")
 
 	logger.InfoContext(ctx, "Building controllers...")
-	controllers := controllers.New(logger, services)
+	validate := validator.New()
+	controllers := controllers.New(logger, validate, services)
 	logger.InfoContext(ctx, "Controllers built")
 
 	logger.InfoContext(ctx, "Building gRPC server...")
