@@ -1,0 +1,9 @@
+.env
+.git
+.gitignore
+bin/
+*.md
+.cursor
+.idea
+.vscode
+*_test.go

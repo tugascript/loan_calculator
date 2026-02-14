@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package loan_calculator.v1;
+
+option go_package = "github.com/tugascript/loan_calculator/calculation_api/proto/loan_calculator/v1;v1";
+
+service CalculationService {
+  rpc CalculateMonthlyRepayment(CalculateMonthlyRepaymentRequest) returns (CalculateMonthlyRepaymentResponse) {}
+}
+
+message CalculateMonthlyRepaymentRequest {
+  double loan_amount = 1;
+  double interest_rate = 2;
+  int32 number_of_payments = 3;
+}
+
+message CalculateMonthlyRepaymentResponse {
+  string id = 1;
+  double monthly_repayment_amount = 2;
+}
