@@ -27,15 +27,18 @@ type GRPCServer struct {
 
 // TODO: looks like CTRL+C is not delayed, fix me at the end
 func (s *GRPCServer) Close(ctx context.Context, done chan bool) {
-	stpCtx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+	logger := s.logger.With("method", "Close")
+
+	logger.InfoContext(ctx, "Closing server...")
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	<-stpCtx.Done()
+	<-ctx.Done()
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	s.logger.InfoContext(shutdownCtx, "Closing gRPC server...")
+	logger.InfoContext(ctx, "Closing gRPC server...")
 	grpcDone := make(chan any)
 	go func() {
 		s.Server.GracefulStop()
@@ -44,31 +47,32 @@ func (s *GRPCServer) Close(ctx context.Context, done chan bool) {
 
 	select {
 	case <-grpcDone:
-		s.logger.InfoContext(shutdownCtx, "gRPC server closed")
-	case <-shutdownCtx.Done():
-		s.logger.WarnContext(shutdownCtx, "gRPC graceful stop timed out, forcing stop")
+		logger.InfoContext(ctx, "gRPC server closed")
+	case <-ctx.Done():
+		logger.WarnContext(ctx, "gRPC graceful stop timed out, forcing stop")
 		s.Server.Stop()
 		<-grpcDone
 	}
 
-	s.logger.InfoContext(shutdownCtx, "Closing database...")
+	logger.InfoContext(ctx, "Closing database...")
 	s.db.Close()
-	s.logger.InfoContext(shutdownCtx, "database closed")
+	logger.InfoContext(ctx, "database closed")
 
-	s.logger.InfoContext(shutdownCtx, "All resources closed")
+	logger.InfoContext(ctx, "All resources closed")
 	done <- true
 }
 
 func (s *GRPCServer) Start(ctx context.Context, port int64) {
-	s.logger.InfoContext(ctx, "Starting gRPC server...", "port", port)
+	logger := s.logger.With("method", "Start", "port", port)
+	logger.InfoContext(ctx, "Starting gRPC server...", "port", port)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		s.logger.ErrorContext(ctx, "Failed to listen", "error", err)
+		logger.ErrorContext(ctx, "Failed to listen", "error", err)
 		panic(err)
 	}
 
 	if err := s.Server.Serve(lis); err != nil {
-		s.logger.ErrorContext(ctx, "Failed to serve", "error", err)
+		logger.ErrorContext(ctx, "Failed to serve", "error", err)
 		panic(err)
 	}
 }
