@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"log/slog"
+	"math/big"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -40,26 +42,32 @@ func (lc *LoanCalculationRequestsService) CreateLoanCalculationRequest(
 	logger := buildLogger(lc.logger, opts.RequestID, "CreateLoanCalculationRequest")
 	logger.InfoContext(ctx, "Creating loan calculation request", "opts", opts)
 
+	logger.InfoContext(ctx, "Calculating monthly repayment amount",
+		"loanAmount", opts.LoanAmount,
+		"interestRate", opts.InterestRate,
+		"numberOfPayments", opts.NumberOfPayments,
+	)
 	mraFloat64 := calculateMonthlyRepaymentAmount(
 		opts.LoanAmount,
 		opts.InterestRate,
 		opts.NumberOfPayments,
 	)
+	logger.InfoContext(ctx, "Monthly repayment amount", "mraFloat64", mraFloat64)
 
 	var loanAmount pgtype.Numeric
-	if err := loanAmount.Scan(opts.LoanAmount); err != nil {
+	if err := loanAmount.Scan(strconv.FormatFloat(opts.LoanAmount, 'f', -1, 64)); err != nil {
 		logger.ErrorContext(ctx, "Failed to scan loan amount", "error", err)
 		return nil, api_errors.NewInternalServerError("Failed to scan loan amount")
 	}
 
 	var interestRate pgtype.Numeric
-	if err := interestRate.Scan(opts.InterestRate); err != nil {
+	if err := interestRate.Scan(strconv.FormatFloat(opts.InterestRate, 'f', -1, 64)); err != nil {
 		logger.ErrorContext(ctx, "Failed to scan interest rate", "error", err)
 		return nil, api_errors.NewInternalServerError("Failed to scan interest rate")
 	}
 
 	var monthlyRepaymentAmount pgtype.Numeric
-	if err := monthlyRepaymentAmount.Scan(mraFloat64); err != nil {
+	if err := monthlyRepaymentAmount.Scan(strconv.FormatFloat(mraFloat64, 'f', -1, 64)); err != nil {
 		logger.ErrorContext(ctx, "Failed to scan monthly repayment amount", "error", err)
 		return nil, api_errors.NewInternalServerError("Failed to scan monthly repayment amount")
 	}
@@ -81,58 +89,60 @@ func (lc *LoanCalculationRequestsService) CreateLoanCalculationRequest(
 }
 
 // Copied CODE, not mine.
+// Fixed to use big.Rat instead of int64 to avoid overflow.
 func calculateMonthlyRepaymentAmount(loanAmount, interestRate float64, numPayments int32) float64 {
-	// PMT = (P * r * (1 + r)^n) / ((1 + r)^n - 1)
-	// where:
-	// P = loanAmount
-	// r = monthly interest rate
-	// n = number of payments
 	if numPayments <= 0 {
 		return 0
 	}
-	if interestRate == 0 {
-		return loanAmount / float64(numPayments)
+
+	// Convert inputs to big.Rat
+	P := new(big.Rat).SetFloat64(loanAmount)
+
+	// Monthly rate = annual / 12
+	r := new(big.Rat).SetFloat64(interestRate)
+	r.Quo(r, big.NewRat(12, 1))
+
+	if r.Sign() == 0 {
+		// No interest case
+		result := new(big.Rat).Quo(P, big.NewRat(int64(numPayments), 1))
+		f, _ := result.Float64()
+		return f
 	}
 
-	// Scale values to work with integers (simulate fixed point)
-	const scale = 1_000_000
-
-	P := int64(loanAmount * scale)
-	r := int64(interestRate * scale)
 	n := int64(numPayments)
 
-	// Use integers for calculation, simulating fixed-point math
-	one := int64(scale)
+	// one = 1
+	one := big.NewRat(1, 1)
 
-	// Calculate (1 + r) as an integer (still scaled)
-	onePlusR := one + r
+	// (1 + r)
+	onePlusR := new(big.Rat).Add(one, r)
 
-	// powInt returns (onePlusR ^ n) / (scale ^ (n-1)) by multiplying with scale each time
-	power := powInt(onePlusR, n, scale)
+	// power = (1 + r)^n
+	power := powRat(onePlusR, n)
 
-	// Numerator: P * r * power
-	// (We must divide by scale twice, once for r, once for power)
-	num := P * r * power
-	num = num / scale / scale
+	// numerator = P * r * power
+	num := new(big.Rat).Mul(P, r)
+	num.Mul(num, power)
 
-	// Denominator: power - one (both scaled)
-	den := power - one
+	// denominator = power - 1
+	den := new(big.Rat).Sub(power, one)
 
-	if den == 0 {
+	if den.Sign() == 0 {
 		return 0
 	}
 
-	result := float64(num) / float64(den)
-	return result
+	result := new(big.Rat).Quo(num, den)
+
+	f, _ := result.Float64()
+	return f
 }
 
-// powInt performs integer exponentiation, keeping scale in mind.
-// base and scale should have the same scale factor as the rest of the calculation,
-// so powInt(onePlusR, n, scale) computes (onePlusR/scale)^n as a scaled integer.
-func powInt(base, exp, scale int64) int64 {
-	result := scale
-	for range exp {
-		result = (result * base) / scale
+func powRat(base *big.Rat, exp int64) *big.Rat {
+	result := big.NewRat(1, 1)
+
+	for i := int64(0); i < exp; i++ {
+		result.Mul(result, base)
 	}
+
 	return result
 }
