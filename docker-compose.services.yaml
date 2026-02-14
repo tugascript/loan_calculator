@@ -1,0 +1,41 @@
+include:
+  - docker-compose.yaml
+
+services:
+  calculation_api:
+    build:
+      context: ./calculation_api
+      dockerfile: Dockerfile
+    container_name: calculation_api
+    environment:
+      PORT: 8080
+      ENV: development
+      LOG_LEVEL: info
+      SERVICE_NAME: calculation_api
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/loan?sslmode=disable
+    ports:
+      - "0.0.0.0:8080:8080"
+    depends_on:
+      - postgres
+    restart: on-failure
+    networks:
+      - provider_net
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    environment:
+      PORT: 8090
+      ENV: development
+      LOG_LEVEL: info
+      SERVICE_NAME: gateway
+      CALCULATION_DOMAIN: calculation_api:8080
+    ports:
+      - "0.0.0.0:8090:8090"
+    depends_on:
+      - calculation_api
+    restart: on-failure
+    networks:
+      - provider_net

@@ -4,8 +4,15 @@ package loan_calculator.v1;
 
 option go_package = "github.com/tugascript/loan_calculator/calculation_api/proto/loan_calculator/v1;v1";
 
+import "google/api/annotations.proto";
+
 service CalculationService {
-  rpc CalculateMonthlyRepayment(CalculateMonthlyRepaymentRequest) returns (CalculateMonthlyRepaymentResponse) {}
+  rpc CalculateMonthlyRepayment(CalculateMonthlyRepaymentRequest) returns (CalculateMonthlyRepaymentResponse) {
+    option (google.api.http) = {
+      post: "/v1/monthly-repayments/calculate"
+      body: "*"
+    };
+  }
 }
 
 message CalculateMonthlyRepaymentRequest {
