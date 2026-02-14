@@ -24,7 +24,7 @@ Loan Calculator is a microservice-based API that computes the **monthly repaymen
 
 - **PostgreSQL** — Stores loan calculation requests.
 
-## Folder structure
+### Folder structure
 
 ```bash
 loan_calculator/
@@ -107,4 +107,4 @@ Example response:
 
 ## License
 
-See [LICENSE](LICENSE) in the repository.
+The code of this project is licensed under the MIT License. For more information, see the [LICENSE](LICENSE) file.
