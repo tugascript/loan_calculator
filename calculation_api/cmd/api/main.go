@@ -21,13 +21,14 @@ func main() {
 	server := server.New(ctx, log, cfg)
 	log.InfoContext(ctx, "Server built")
 
+	done := make(chan bool, 1)
+
 	log.InfoContext(ctx, "Starting server...")
 	go server.Start(ctx, cfg.Port())
 	log.InfoContext(ctx, "Server started")
 
-	done := make(chan bool, 1)
+	log.InfoContext(ctx, "Closing server...")
 	go server.Close(ctx, done)
-
 	<-done
 	log.InfoContext(ctx, "Server stopped")
 }
