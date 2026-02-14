@@ -48,17 +48,20 @@ func (lc *LoanCalculationRequestsService) CreateLoanCalculationRequest(
 
 	var loanAmount pgtype.Numeric
 	if err := loanAmount.Scan(opts.LoanAmount); err != nil {
-		return nil, api_errors.NewServiceError(api_errors.CodeInternalServerError, "Failed to scan loan amount")
+		logger.ErrorContext(ctx, "Failed to scan loan amount", "error", err)
+		return nil, api_errors.NewInternalServerError("Failed to scan loan amount")
 	}
 
 	var interestRate pgtype.Numeric
 	if err := interestRate.Scan(opts.InterestRate); err != nil {
-		return nil, api_errors.NewServiceError(api_errors.CodeInternalServerError, "Failed to scan interest rate")
+		logger.ErrorContext(ctx, "Failed to scan interest rate", "error", err)
+		return nil, api_errors.NewInternalServerError("Failed to scan interest rate")
 	}
 
 	var monthlyRepaymentAmount pgtype.Numeric
 	if err := monthlyRepaymentAmount.Scan(mraFloat64); err != nil {
-		return nil, api_errors.NewServiceError(api_errors.CodeInternalServerError, "Failed to scan monthly repayment amount")
+		logger.ErrorContext(ctx, "Failed to scan monthly repayment amount", "error", err)
+		return nil, api_errors.NewInternalServerError("Failed to scan monthly repayment amount")
 	}
 
 	loanCalculationRequest, err := lc.db.InsertLoanCalculationRequest(ctx, database.InsertLoanCalculationRequestParams{
@@ -70,7 +73,8 @@ func (lc *LoanCalculationRequestsService) CreateLoanCalculationRequest(
 		MonthlyRepaymentAmount: monthlyRepaymentAmount,
 	})
 	if err != nil {
-		return nil, api_errors.NewServiceError(api_errors.CodeInternalServerError, "Failed to insert loan calculation request")
+		logger.ErrorContext(ctx, "Failed to insert loan calculation request", "error", err)
+		return nil, api_errors.FromDBError(err)
 	}
 
 	return dtos.MapLoanCalculationRequestToDTO(&loanCalculationRequest)
