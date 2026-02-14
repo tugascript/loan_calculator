@@ -30,5 +30,5 @@ func main() {
 	log.InfoContext(ctx, "Closing server...")
 	go server.Close(ctx, done)
 	<-done
-	log.InfoContext(ctx, "Server stopped")
+	log.InfoContext(ctx, "Server closed")
 }
