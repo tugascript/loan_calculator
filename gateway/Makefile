@@ -9,6 +9,10 @@ clean:
 run:
 	@go run cmd/api/main.go
 
+run_in_docker:
+	@echo "Running in Docker..."
+	@docker build -t gateway . && docker run -e PORT=8090 -e ENV=development -e LOG_LEVEL=info -e SERVICE_NAME=gateway -e CALCULATION_DOMAIN=0.0.0.0:8080 -p 8090:8090 gateway
+
 build_proto:
 	@echo "Generating Go stubs..."
 	@protoc -I ../proto \
