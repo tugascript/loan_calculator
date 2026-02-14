@@ -105,6 +105,21 @@ Example response:
 }
 ```
 
+### Integration tests
+
+An integration test starts the full stack with `docker-compose.services.yaml`, runs migrations, calls the gateway with a fixed request, and asserts the response (status, UUID `id`, and `monthlyRepaymentAmount` ≈ 3019.59), then tears down the stack.
+
+**Prerequisites:** Docker (and `docker compose` or `docker-compose`) and the **migrate** CLI on your PATH. Ports 5432, 8080, and 8090 must be free.
+
+From the **project root** (or from `tests/`):
+
+```bash
+cd tests
+go test -v -run TestDockerCompose -count=1
+```
+
+The test discovers the repo root from the test file path, so it works whether you run from the repo root or from `tests/`.
+
 ## License
 
 The code of this project is licensed under the MIT License. For more information, see the [LICENSE](LICENSE) file.
